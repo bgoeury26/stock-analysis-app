@@ -1,0 +1,153 @@
+/* QuantEdge - Style Sheet */
+
+/* Sidebar nav active state */
+.nav-btn {
+  color: #9ca3af;
+}
+.nav-btn:hover, .nav-btn.active {
+  background-color: #162340;
+  color: #00d4aa;
+}
+
+/* Spinner small */
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #162340;
+  border-top-color: #00d4aa;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* Spinner large */
+.spinner-lg {
+  width: 56px;
+  height: 56px;
+  border: 4px solid #162340;
+  border-top-color: #00d4aa;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Stock card hover */
+.stock-card {
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+}
+.stock-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 212, 170, 0.08);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0d1526;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e2d4d;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00d4aa;
+}
+
+/* AI report sections */
+.report-section h3 {
+  color: #00d4aa;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #162340;
+  padding-bottom: 0.25rem;
+}
+.report-section p, .report-section li {
+  color: #d1d5db;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+.report-section ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin-top: 0.25rem;
+}
+
+/* Score badge */
+.score-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  font-weight: 900;
+  border: 3px solid;
+}
+
+/* Period button active */
+.period-btn.active {
+  background-color: #00d4aa;
+  color: #0a0f1e;
+}
+
+/* Macro card */
+.macro-card {
+  background: #0d1526;
+  border: 1px solid #162340;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+/* Metric table */
+.metric-table td {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.82rem;
+  border-bottom: 1px solid #162340;
+}
+.metric-table tr:last-child td {
+  border-bottom: none;
+}
+.metric-table td:first-child {
+  color: #9ca3af;
+  width: 55%;
+}
+.metric-table td:last-child {
+  color: #e5e7eb;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* News item */
+.news-item {
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #162340;
+  font-size: 0.82rem;
+}
+.news-item:last-child {
+  border-bottom: none;
+}
+
+/* Textarea for annotations */
+textarea.annotation {
+  background: #111d35;
+  border: 1px solid #1e2d4d;
+  border-radius: 8px;
+  color: #e5e7eb;
+  font-size: 0.82rem;
+  width: 100%;
+  padding: 0.75rem;
+  resize: vertical;
+  outline: none;
+  transition: border 0.2s;
+}
+textarea.annotation:focus {
+  border-color: #00d4aa;
+}

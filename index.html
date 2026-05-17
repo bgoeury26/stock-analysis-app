@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuantEdge - Stock Analysis Platform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            navy: { 900: '#0a0f1e', 800: '#0d1526', 700: '#111d35', 600: '#162340', 500: '#1e2d4d' },
+            accent: { DEFAULT: '#00d4aa', dark: '#00b894', light: '#00ffcc' }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-navy-900 text-gray-100 font-sans antialiased">
+
+<!-- AUTH OVERLAY -->
+<div id="authOverlay" class="fixed inset-0 z-50 flex items-center justify-center bg-navy-900">
+  <div class="bg-navy-800 border border-navy-600 rounded-2xl p-8 w-full max-w-md shadow-2xl">
+    <div class="text-center mb-8">
+      <div class="text-4xl font-black text-accent mb-2">QuantEdge</div>
+      <p class="text-gray-400 text-sm">Professional Stock Analysis Platform</p>
+    </div>
+    <!-- Login Form -->
+    <div id="loginForm">
+      <h2 class="text-xl font-semibold mb-6 text-center">Sign In</h2>
+      <div class="space-y-4">
+        <input id="loginEmail" type="email" placeholder="Email" class="w-full bg-navy-700 border border-navy-500 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-accent transition" />
+        <input id="loginPassword" type="password" placeholder="Password" class="w-full bg-navy-700 border border-navy-500 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-accent transition" />
+        <button onclick="handleLogin()" class="w-full bg-accent hover:bg-accent-dark text-navy-900 font-bold py-3 rounded-lg transition text-sm">Sign In</button>
+      </div>
+      <p class="text-center text-gray-500 text-sm mt-4">No account? <span class="text-accent cursor-pointer hover:underline" onclick="toggleAuth()">Register</span></p>
+      <p id="loginError" class="text-red-400 text-xs text-center mt-2 hidden"></p>
+    </div>
+    <!-- Register Form -->
+    <div id="registerForm" class="hidden">
+      <h2 class="text-xl font-semibold mb-6 text-center">Create Account</h2>
+      <div class="space-y-4">
+        <input id="regName" type="text" placeholder="Full Name" class="w-full bg-navy-700 border border-navy-500 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-accent transition" />
+        <input id="regEmail" type="email" placeholder="Email" class="w-full bg-navy-700 border border-navy-500 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-accent transition" />
+        <input id="regPassword" type="password" placeholder="Password (min 6 chars)" class="w-full bg-navy-700 border border-navy-500 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-accent transition" />
+        <button onclick="handleRegister()" class="w-full bg-accent hover:bg-accent-dark text-navy-900 font-bold py-3 rounded-lg transition text-sm">Create Account</button>
+      </div>
+      <p class="text-center text-gray-500 text-sm mt-4">Have an account? <span class="text-accent cursor-pointer hover:underline" onclick="toggleAuth()">Sign In</span></p>
+      <p id="regError" class="text-red-400 text-xs text-center mt-2 hidden"></p>
+    </div>
+    <p class="text-center text-gray-600 text-xs mt-6">Max 2 analyst accounts</p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" class="hidden flex h-screen overflow-hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="w-64 flex-shrink-0 bg-navy-800 border-r border-navy-600 flex flex-col">
+    <div class="p-6 border-b border-navy-600">
+      <div class="text-2xl font-black text-accent">QuantEdge</div>
+      <div id="userDisplay" class="text-xs text-gray-400 mt-1"></div>
+    </div>
+    <nav class="flex-1 p-4 space-y-1">
+      <button onclick="navigate('dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition" data-section="dashboard">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"/></svg>
+        Dashboard
+      </button>
+      <button onclick="navigate('analysis')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition" data-section="analysis">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        Stock Analysis
+      </button>
+      <button onclick="navigate('reports')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition" data-section="reports">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Reports
+      </button>
+      <button onclick="navigate('settings')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition" data-section="settings">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        Settings
+      </button>
+    </nav>
+    <div class="p-4 border-t border-navy-600">
+      <button onclick="handleLogout()" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-400 hover:text-red-400 hover:bg-navy-700 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 overflow-y-auto">
+
+    <!-- DASHBOARD SECTION -->
+    <section id="section-dashboard" class="hidden p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-bold">Dashboard</h1>
+        <div class="flex items-center gap-3">
+          <input id="searchTicker" type="text" placeholder="Search ticker (e.g. AAPL)" class="bg-navy-700 border border-navy-500 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-accent w-56 transition" onkeydown="if(event.key==='Enter') addToWatchlist()" />
+          <button onclick="addToWatchlist()" class="bg-accent hover:bg-accent-dark text-navy-900 font-bold px-4 py-2 rounded-lg text-sm transition">+ Add</button>
+        </div>
+      </div>
+
+      <!-- Watchlist Grid -->
+      <div id="watchlistGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8"></div>
+
+      <!-- Chart Area -->
+      <div class="bg-navy-800 border border-navy-600 rounded-2xl p-6 mb-8">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold" id="chartTitle">Price History</h2>
+          <div class="flex gap-2">
+            <button onclick="changeChartPeriod('1mo')" class="period-btn px-3 py-1 rounded text-xs bg-navy-700 hover:bg-accent hover:text-navy-900 transition">1M</button>
+            <button onclick="changeChartPeriod('3mo')" class="period-btn px-3 py-1 rounded text-xs bg-navy-700 hover:bg-accent hover:text-navy-900 transition">3M</button>
+            <button onclick="changeChartPeriod('6mo')" class="period-btn px-3 py-1 rounded text-xs bg-navy-700 hover:bg-accent hover:text-navy-900 transition">6M</button>
+            <button onclick="changeChartPeriod('1y')" class="period-btn px-3 py-1 rounded text-xs bg-navy-700 hover:bg-accent hover:text-navy-900 transition">1Y</button>
+          </div>
+        </div>
+        <div class="relative h-72">
+          <div id="chartSpinner" class="absolute inset-0 flex items-center justify-center"><div class="spinner"></div></div>
+          <canvas id="priceChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Macro Indicators -->
+      <div>
+        <h2 class="text-lg font-semibold mb-4">Macro Indicators <span class="text-xs text-gray-500">(FRED)</span></h2>
+        <div id="macroGrid" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
+      </div>
+    </section>
+
+    <!-- ANALYSIS SECTION -->
+    <section id="section-analysis" class="hidden p-6">
+      <h1 class="text-2xl font-bold mb-6">Stock Analysis</h1>
+      <div class="bg-navy-800 border border-navy-600 rounded-2xl p-6 mb-6">
+        <div class="flex gap-3 mb-4">
+          <input id="analysisTicker" type="text" placeholder="Enter ticker symbol (e.g. MSFT)" class="flex-1 bg-navy-700 border border-navy-500 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-accent transition" />
+          <button onclick="runAnalysis()" class="bg-accent hover:bg-accent-dark text-navy-900 font-bold px-6 py-3 rounded-lg text-sm transition flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Analyze
+          </button>
+        </div>
+        <p class="text-xs text-gray-500">Collects price history, fundamentals, macro data, news, and insider trades — then generates a full AI report.</p>
+      </div>
+      <div id="analysisResult" class="hidden">
+        <div class="bg-navy-800 border border-navy-600 rounded-2xl p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h2 id="analysisTickerTitle" class="text-xl font-bold text-accent"></h2>
+            <button onclick="saveReport()" class="bg-navy-700 hover:bg-navy-600 border border-navy-500 px-4 py-2 rounded-lg text-sm transition">Save Report</button>
+          </div>
+          <div id="analysisContent" class="space-y-6"></div>
+        </div>
+      </div>
+      <div id="analysisSpinnerWrap" class="hidden flex flex-col items-center justify-center py-20 gap-4">
+        <div class="spinner-lg"></div>
+        <p class="text-gray-400 text-sm" id="analysisStatusText">Gathering data...</p>
+      </div>
+    </section>
+
+    <!-- REPORTS SECTION -->
+    <section id="section-reports" class="hidden p-6">
+      <h1 class="text-2xl font-bold mb-6">Reports</h1>
+      <div id="reportsEmpty" class="hidden text-center py-20 text-gray-500">No saved reports yet. Run an analysis and save it.</div>
+      <div id="reportsList" class="space-y-4"></div>
+    </section>
+
+    <!-- SETTINGS SECTION -->
+    <section id="section-settings" class="hidden p-6">
+      <h1 class="text-2xl font-bold mb-6">Settings</h1>
+      <div class="max-w-2xl space-y-6">
+
+        <!-- AI Backend -->
+        <div class="bg-navy-800 border border-navy-600 rounded-2xl p-6">
+          <h2 class="text-lg font-semibold mb-4">AI Backend</h2>
+          <div class="flex gap-4 mb-4">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="aiBackend" value="groq" class="accent-accent" onchange="saveSettings()" /> Groq (Free - Recommended)
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="aiBackend" value="openai" class="accent-accent" onchange="saveSettings()" /> OpenAI GPT-4o-mini
+            </label>
+          </div>
+        </div>
+
+        <!-- API Keys -->
+        <div class="bg-navy-800 border border-navy-600 rounded-2xl p-6">
+          <h2 class="text-lg font-semibold mb-4">API Keys</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">Groq API Key <span class="text-accent">(Free)</span></label>
+              <input id="keyGroq" type="password" placeholder="gsk_..." class="w-full bg-navy-700 border border-navy-500 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-accent transition" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">OpenAI API Key</label>
+              <input id="keyOpenAI" type="password" placeholder="sk-..." class="w-full bg-navy-700 border border-navy-500 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-accent transition" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">FRED API Key <span class="text-accent">(Free)</span></label>
+              <input id="keyFRED" type="text" placeholder="Your FRED key" class="w-full bg-navy-700 border border-navy-500 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-accent transition" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">Alpha Vantage API Key <span class="text-accent">(Free tier)</span></label>
+              <input id="keyAlphaVantage" type="text" placeholder="Your Alpha Vantage key" class="w-full bg-navy-700 border border-navy-500 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-accent transition" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">NewsAPI Key <span class="text-accent">(Free tier)</span></label>
+              <input id="keyNewsAPI" type="text" placeholder="Your NewsAPI key" class="w-full bg-navy-700 border border-navy-500 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-accent transition" />
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">Quiver Quantitative API Key <span class="text-accent">(Free tier)</span></label>
+              <input id="keyQuiver" type="text" placeholder="Your Quiver key" class="w-full bg-navy-700 border border-navy-500 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-accent transition" />
+            </div>
+            <button onclick="saveSettings()" class="w-full bg-accent hover:bg-accent-dark text-navy-900 font-bold py-3 rounded-lg transition text-sm mt-2">Save API Keys</button>
+            <p id="settingsSaved" class="text-accent text-xs text-center hidden">Settings saved successfully!</p>
+          </div>
+        </div>
+
+        <!-- Cache -->
+        <div class="bg-navy-800 border border-navy-600 rounded-2xl p-6">
+          <h2 class="text-lg font-semibold mb-2">Cache Management</h2>
+          <p class="text-xs text-gray-400 mb-4">API responses are cached in localStorage to minimize API calls. Clear if you need fresh data.</p>
+          <button onclick="clearCache()" class="bg-red-900 hover:bg-red-800 border border-red-700 px-4 py-2 rounded-lg text-sm transition">Clear API Cache</button>
+        </div>
+
+        <!-- Data Sources Info -->
+        <div class="bg-navy-800 border border-navy-600 rounded-2xl p-6">
+          <h2 class="text-lg font-semibold mb-4">Data Sources</h2>
+          <ul class="space-y-2 text-sm text-gray-300">
+            <li><span class="text-accent font-medium">Yahoo Finance (via allorigins proxy)</span> — Real-time quotes &amp; price history (free)</li>
+            <li><span class="text-accent font-medium">FRED API</span> — Macroeconomic indicators (free, requires key)</li>
+            <li><span class="text-accent font-medium">Alpha Vantage</span> — Stock fundamentals (free tier, 25 req/day)</li>
+            <li><span class="text-accent font-medium">NewsAPI</span> — Financial news headlines (free tier)</li>
+            <li><span class="text-accent font-medium">Quiver Quantitative</span> — Congressional &amp; insider trades (free tier)</li>
+            <li><span class="text-accent font-medium">Groq API</span> — AI inference, LLaMA 3 (free)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
+  <div class="bg-navy-700 border border-navy-500 text-sm px-5 py-3 rounded-xl shadow-xl"></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
